@@ -18,18 +18,65 @@ if(typeof Koi == 'undefined') { Koi = {}; }
     
     Koi = f.prototype;
 
+    /**
+     *  Add a Hook
+     *  @param string    Hook Name
+     *  @param function  Hook
+     *  @param string    Hook Namespace (defaults to global)
+     */
+    Koi.addHook = function(name, hook, namespace) {
+        if(!namespace)
+            namespace = 'global';
+        
+        if(!hooks[namespace]) {
+            hooks[namespace] = {};
+        }
+        
+        hooks[namespace][name] = hook;
+        hooks.len++;
+    };
     
     /**
-     * Define Method
-     * @param def {KoiDefinition} A basic object definition
-     * 
-     * This is a very basic method to wrap an object definition inside 
-     * a function so that it may be instantiated.
-     * 
-     * Reserved Names:
-     * @_parent If nesting is provided, all parent defintions will be stored in this property.
-     * @init If provided, the init function will be run as a constructor
-     * @hooks {Array} An array of hook names to be used when instantiating.
+     *  Remove a Hook
+     *  @param string  Hook Name
+     *  @param string  Hook Namespace
+     */
+    Koi.removeHook = function(hook, namespace) {
+      if(!namespace) { namespace = 'global'; }
+      if(hooks[namespace] && hooks[namespace][hook]) {
+          delete hooks[namespace][hook];
+          hooks.len--;  
+      }      
+    };
+    
+    
+    /**
+     *  Inject Hooks
+     *  Utility method to inject hooks into Koi defined objects.
+     */
+    var injectHooks = function( proto ) {
+        for(var hook in hooks) {
+            // Check if the hook is a global hook or if the Koi definition calls for the hook
+            if(hook === 'global' || proto.hooks && proto.hooks[hook]) {
+                var len = hooks[hook].length;
+                for(var x in hooks[hook]) {
+                    hooks[hook][x](proto); // Run the Hook against the prototype object
+                }
+            }
+        }
+    };
+    
+    /**
+     *  Define Method
+     *  @param def {KoiDefinition} A basic object definition
+     *  
+     *  This is a very basic method to wrap an object definition inside 
+     *  a function so that it may be instantiated.
+     *  
+     *  Reserved Names:
+     *  @_parent If nesting is provided, all parent defintions will be stored in this property.
+     *  @init If provided, the init function will be run as a constructor
+     *  @hooks {Array} An array of hook names to be used when instantiating.
      */
     Koi.define = function(def) {
         var tmp = function() {
@@ -37,18 +84,16 @@ if(typeof Koi == 'undefined') { Koi = {}; }
                 this.init.apply(def, arguments);
             }
         };
+        if(hooks.len > 0) { injectHooks(def); }
         tmp.prototype = def;
-        if(hooks.len > 0) {
-            injectHooks(tmp);
-        }
         return tmp;
     };
     
     /**
-     * Extend Method
-     * @param parent {KoiDefinition} Parent Koi Definition
-     * @param def {KoiDefinition} Koi Definition to extend Parent Koi Definition
-     * @param nest {Boolean} Whether to store the parent Koi overrides in _parent property
+     *  Extend Method
+     *  @param parent {KoiDefinition} Parent Koi Definition
+     *  @param def {KoiDefinition} Koi Definition to extend Parent Koi Definition
+     *  @param nest {Boolean} Whether to store the parent Koi overrides in _parent property
      */
     Koi.extend = function(parent, def, nest) {
         var obj = new parent();
@@ -67,31 +112,22 @@ if(typeof Koi == 'undefined') { Koi = {}; }
     };
     
     /**
-     * Namespace Method
-     * Registers a global object and applies an init method to shortcut Koi.init() calls.
-     * @param namespace {String} String to convert into a global window object.
-     * @param context {String} Context Object to where the namespacing is applied. Default is window
+     *  Namespace Method
+     *  Registers a global object and returns Koi.
+     *  @param string Namespace to create
+     *  @param string Context Object where the namespacing is applied. Default context is the window object
      */
     Koi.namespace = function(namespace, context) {
         if(!context)
             context = window;
         try {
             var type = typeof context[namespace];
-            var register = function() {
-                var n = context[namespace];
-                n.init = function() {
-                    var args = Array.prototype.slice.call(arguments);
-                    args[0] = n[args[0]];
-                    return Koi.init.apply(Koi, args);
-                };
-            };
             if(type == 'undefined') { 
                 context[namespace] = {}; 
-                register();
-            } else if(type.toLowerCase() == 'object' && !context[namespace].init) {
-                register();
             }
         } catch(e) {}
+        
+        return Koi;
     };
     
     return Koi;
