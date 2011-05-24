@@ -2,14 +2,12 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.5.0
+ * @version 0.6.0
 */
 
 if(typeof Koi == 'undefined') { Koi = {}; }
 
 (function() {
-    
-    var version = '0.5.0';
     
     var f = function() {};
     var hooks = {
