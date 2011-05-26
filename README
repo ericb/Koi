@@ -1,1 +1,8 @@
 Koi helps you write your object based javascript with style. To quickly get started, check out examples.js to see how you can benefit from using Koi.
+
+Main Features:
+
+ * Create Classes as Objects
+ * Extend Classes with ease.
+ * Supports constructor methods.
+ * Supports adding global & namespaced hooks
