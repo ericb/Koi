@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.7.0
+ * @version 0.8.0
  
  FreeBSD License
  
@@ -119,7 +119,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
     Koi.define = function(def) {
         var tmp = function() {
             if(this.init && typeof this.init == 'function') {
-                this.init.apply(def, arguments);
+                this.init.apply(this, arguments);
             }
         };
         if(hooks.len > 0) { injectHooks(def); }
