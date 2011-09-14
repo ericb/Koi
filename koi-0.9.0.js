@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.8.0
+ * @version 0.9.0
  
  FreeBSD License
  
@@ -105,6 +105,32 @@ if(typeof Koi == 'undefined') { Koi = {}; }
     };
     
     /**
+     *  Import Method
+     *  @param def {KoiDefinition}  The object you wish to import.
+     *  @param string               The object member reference.
+     *  @param array                The arguments to pass to the module init.
+     *  
+     *  This method is a shortcut method to set the imported module as a member 
+     *  of the selected object as _name_. If _name_ already exists, it will be
+     *  overwritten. This method instantiates the module.
+     */
+    Koi.import =  function( module, import_as, args ) {
+        if(!module || !import_as) { return false; }
+        
+        // generate the temporary function
+        var init = (function() {
+            var temp_func = function() {
+                return module.apply(this, args);
+            }
+            temp_func.prototype = module.prototype;
+            return function() { return new temp_func(arguments); }
+        })();
+
+        this[import_as] = new init();
+        return true;
+    };
+    
+    /**
      *  Define Method
      *  @param def {KoiDefinition} A basic object definition
      *  
@@ -124,6 +150,13 @@ if(typeof Koi == 'undefined') { Koi = {}; }
         };
         if(hooks.len > 0) { injectHooks(def); }
         tmp.prototype = def;
+        
+        // add import function
+        tmp.prototype.import = function( module, import_as, args ) {
+            Koi.import.apply(this, [module, import_as, args]);
+            return true;
+        };
+        
         return tmp;
     };
     
