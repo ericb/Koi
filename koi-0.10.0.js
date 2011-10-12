@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.9.0
+ * @version 0.10.0
  
  FreeBSD License
  
@@ -114,7 +114,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
      *  of the selected object as _name_. If _name_ already exists, it will be
      *  overwritten. This method instantiates the module.
      */
-    Koi.import =  function( module, import_as, args ) {
+    Koi.import_as =  function( module, import_as, args ) {
         if(!module || !import_as) { return false; }
         
         // generate the temporary function
@@ -152,8 +152,8 @@ if(typeof Koi == 'undefined') { Koi = {}; }
         tmp.prototype = def;
         
         // add import function
-        tmp.prototype.import = function( module, import_as, args ) {
-            Koi.import.apply(this, [module, import_as, args]);
+        tmp.prototype.import_as = function( module, import_as, args ) {
+            Koi.import_as.apply(this, [module, import_as, args]);
             return true;
         };
         
