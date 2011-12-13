@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.10.0
+ * @version 0.11.0
  
  FreeBSD License
  
@@ -144,9 +144,14 @@ if(typeof Koi == 'undefined') { Koi = {}; }
      */
     Koi.define = function(def) {
         var tmp = function() {
-            if(this.init && typeof this.init == 'function') {
-                this.init.apply(this, arguments);
+            if(arguments && (typeof arguments[0] != undefined) && (arguments[0] == 'koi-ignore-init')) {
+                // ignore the init function, just instantiate so we can override.
+            } else {
+                if(this.init && typeof this.init == 'function') {
+                    this.init.apply(this, arguments);
+                } 
             }
+            
         };
         if(hooks.len > 0) { injectHooks(def); }
         tmp.prototype = def;
@@ -167,7 +172,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
      *  @param nest {Boolean} Whether to store the parent Koi overrides in _parent property
      */
     Koi.extend = function(parent, def, nest) {
-        var obj = new parent();
+        var obj = new parent('koi-ignore-init');
         if(nest) {
         	obj._parent = {};
         	for(var x in obj) {
