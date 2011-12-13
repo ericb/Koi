@@ -4,5 +4,6 @@ Main Features:
 
  * Create Classes as Objects
  * Extend Classes with ease.
+ * Import Methods to ease the inclusion of multiple objects.
  * Supports constructor methods.
  * Supports adding global & namespaced hooks
