@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.11.1
+ * @version 0.12.0
  
  FreeBSD License
  
@@ -155,11 +155,38 @@ if(typeof Koi == 'undefined') { Koi = {}; }
         };
         if(hooks.len > 0) { injectHooks(def); }
         tmp.prototype = def;
+        tmp.prototype.__koi_hooks = {};
         
         // add import function
         tmp.prototype.import_as = function( module, import_as, args ) {
             Koi.import_as.apply(this, [module, import_as, args]);
             return true;
+        };
+        
+        // add hook function
+        tmp.prototype.hook = function(name, hooks, args) {
+            if(!hooks) { hooks = {}; }
+            if(!args)  { args = [];  }
+            if(typeof hooks[name] === 'function') {
+                hooks[name].apply(this, args);
+            }
+        };
+        
+        // add set hook function
+        tmp.prototype.use_hooks = function( obj ) {
+            tmp.prototype.__koi_hooks = {};
+            for(var x in obj) {
+                if(typeof obj[x] === 'function') {
+                    this.__koi_hooks[x] = obj[x];
+                }
+            }
+            return tmp.prototype;
+        };
+        
+        tmp.prototype.get_hooks = function() {
+            var hooks = Koi.clone_object( tmp.prototype.__koi_hooks );
+            tmp.prototype.__koi_hooks = {};
+            return hooks;
         };
         
         return tmp;
@@ -206,5 +233,25 @@ if(typeof Koi == 'undefined') { Koi = {}; }
         return Koi;
     };
     
+    /**
+     *  Clone Object
+     *  Method to clone an object outright. All array / object references will be untied to their references.
+     *  @param object   Object to clone
+     */
+    Koi.clone_object = function( merge ) {
+        var _temp_obj = {};
+        if( merge instanceof Array ) {
+            _temp_obj = [];
+        }
+        for(var x in merge) {
+           if(typeof merge[x] == 'object') {
+              _temp_obj[x] = this.cloneObject( merge[x] );
+           } else {
+              _temp_obj[x] = merge[x];
+           }
+        }
+        return _temp_obj;
+    };
+        
     return Koi;
 })();
