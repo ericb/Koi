@@ -42,6 +42,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
     var plugins = {
         len: 0
     };
+    var hooks = plugins;
     
     Koi = f.prototype;
 
