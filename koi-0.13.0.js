@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.12.0
+ * @version 0.13.0
  
  FreeBSD License
  
@@ -39,64 +39,77 @@ if(typeof Koi == 'undefined') { Koi = {}; }
 (function() {
     
     var f = function() {};
-    var hooks = {
+    var plugins = {
         len: 0
     };
     
     Koi = f.prototype;
 
     /**
-     *  Add a Hook
-     *  @param string    Hook Name
-     *  @param function  Hook
-     *  @param string    Hook Namespace (defaults to global)
+     *  Add a Plugin
+     *  @param string    Plugin Name
+     *  @param function  Plugin
+     *  @param string    Plugin Namespace (defaults to global)
      */
-    Koi.addHook = function(name, hook, namespace) {
+    Koi.add_plugin = function(name, plugin, namespace) {
         if(!namespace)
             namespace = 'global';
         
-        if(!hooks[namespace]) {
-            hooks[namespace] = {};
+        if(!plugins[namespace]) {
+            plugins[namespace] = {};
         }
         
-        hooks[namespace][name] = hook;
-        hooks.len++;
+        plugins[namespace][name] = plugin;
+        plugins.len++;
     };
+    Koi.addHook = Koi.add_plugin; // DEPRECATED (see Koi.add_plugin) as of version 0.13.0 -- Will be removed by version 1.0
     
     /**
-     *  Remove a Hook
-     *  @param string  Hook Name
-     *  @param string  Hook Namespace
+     *  Remove a Plugin
+     *  @param string  Plugin Name
+     *  @param string  Plugin Namespace
      */
-    Koi.removeHook = function(hook, namespace) {
+    Koi.remove_plugin = function(plugin, namespace) {
       if(!namespace) { namespace = 'global'; }
-      if(hooks[namespace] && hooks[namespace][hook]) {
-          delete hooks[namespace][hook];
-          hooks.len--;  
+      if(plugins[namespace] && plugins[namespace][plugin]) {
+          delete plugins[namespace][plugin];
+          plugins.len--;  
       }      
     };
+    Koi.removeHook = Koi.remove_plugin; // DEPRECATED (see Koi.remove_plugin) as of version 0.13.0 -- Will be removed by version 1.0
     
     
     /**
-     *  Inject Hooks
+     *  Inject Plugins
      *  Utility method to inject hooks into Koi defined objects.
      */
-    var injectHooks = function( proto ) {
-        for(var hook in hooks) {
+    var injectPlugins = function( proto ) {
+        for(var plugin in plugins) {
             // Check if the hook is a global hook or if the Koi definition calls for the hook
-            if(hook === 'global') {
-                for(var x in hooks[hook]) {
-                    hooks[hook][x](proto); // Run the Hook against the prototype object
+            if(plugin === 'global') {
+                for(var x in plugins[plugin]) {
+                    plugins[plugin][x](proto); // Run the Hook against the prototype object
                 }
             }
             
-            
+            // proto.hooks is DEPRECATED as of 0.13.0 -- Please use proto.plugins instead -- Will be removed by version 1.0
             if(proto.hooks) {
                 var len = proto.hooks.length;
                 for(var i = 0; i < len; i++) {
                     if(proto.hooks[i] == hook) {
                         for(var x in hooks[hook]) {
                             hooks[hook][x](proto); // Run the Hook against the prototype object
+                        }
+                    }
+                }
+            }
+            
+            if(proto.plugins) {
+                var len = proto.plugins.length;
+                for(var i = 0; i < len; i++) {
+                    if(proto.plugins[i] == plugin) {
+                        for(var x in plugins[plugin]) {
+                            plugins[plugin][x](proto); // Run the Plugin against the prototype object
                         }
                     }
                 }
@@ -153,7 +166,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             }
             
         };
-        if(hooks.len > 0) { injectHooks(def); }
+        if(hooks.len > 0 || plugins.len > 0) { injectPlugins(def); }
         tmp.prototype = def;
         tmp.prototype.__koi_hooks = {};
         
@@ -172,7 +185,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             }
         };
         
-        // add set hook function
+        // define hooks to check against
         tmp.prototype.use_hooks = function( obj ) {
             tmp.prototype.__koi_hooks = {};
             for(var x in obj) {
@@ -183,6 +196,7 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             return tmp.prototype;
         };
         
+        // get the defined hooks;
         tmp.prototype.get_hooks = function() {
             var hooks = Koi.clone_object( tmp.prototype.__koi_hooks );
             tmp.prototype.__koi_hooks = {};
