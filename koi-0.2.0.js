@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.13.0
+ * @version 0.2.0
  
  FreeBSD License
  
@@ -266,6 +266,111 @@ if(typeof Koi == 'undefined') { Koi = {}; }
            }
         }
         return _temp_obj;
+    };
+    
+    
+    Koi.state = function( context, states ) {
+        
+        var ObjectState = {};
+        var _context    = false;
+        if(context) { _context = context; }
+        
+        (function() {
+            var s = function() {};
+            ObjectState = s.prototype;
+            
+            ObjectState._index  = 0;
+            ObjectState._states = {};
+            ObjectState._order  = [];
+            
+            ObjectState.trigger = function( name, context ) {
+                if(this._states[name]) {
+                    this._state = name;
+                    this.set_index();
+                    if(context) {
+                        this._states[name].apply(context);
+                    } else if( _context ) {
+                        this._states[name].apply(_context);
+                    } else {
+                        this._states[name]();
+                    }
+                }
+                return this;
+            };
+            
+            ObjectState.set_index = function( index ) {
+                if(index) {
+                    this._index = index;
+                } else {
+                    var state = this._state;
+                    var order = this._order;
+                    var count = 0;
+                    for(var x in order) {
+                        if(state == order[x]) {
+                            this._index = count;
+                        }
+                        count++;
+                    }
+                }
+            };
+            
+            ObjectState.order = function( order ) {
+                if(order) { this._order = order; }
+                return this;
+            };
+                        
+            ObjectState.add = function( name, state, force ) {
+                if(typeof state != 'function') { return false; }
+                var exists = this._states[name] ? true : false;
+                if(!exists || (exists && force)) { this._states[name] = state; }
+                return this;
+            };
+            
+            ObjectState.remove = function ( name ) {
+                var exists = this._states[name] ? true : false;
+                if(exists) { delete this._states[name]; }
+            };
+            
+            ObjectState.context = function( context ) {
+                if(context) { _context = context; }
+            };
+            
+            ObjectState.get_context = function() {
+                return _context;
+            };
+            
+            ObjectState.get_state = function() {
+                return this._state;
+            };
+            
+            ObjectState.next = function() {
+                if(this._order[(this._index + 1)]) {
+                    this.trigger(this._order[(this._index + 1)]);
+                }
+            };
+            
+            ObjectState.previous = function() {
+                if(this._order[(this._index - 1)]) {
+                    this.trigger(this._order[(this._index - 1)]);
+                }
+            };
+            
+            ObjectState.forward  = ObjectState.next;
+            ObjectState.backward = ObjectState.previous;
+            ObjectState.back     = ObjectState.previous;
+            
+            return ObjectState;
+        })();
+        
+        
+        // inject states
+        if( typeof states != void(0) ) {
+            for(var x in states) {
+                ObjectState.add( x, states[x] );
+            }
+        }
+        
+        return ObjectState;
     };
         
     return Koi;
