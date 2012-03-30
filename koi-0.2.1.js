@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.2.0
+ * @version 0.2.1
  
  FreeBSD License
  
@@ -93,6 +93,27 @@ if(typeof Koi == 'undefined') { Koi = {}; }
                 }
             }
             
+            if(proto.plugins) {
+                var len = proto.plugins.length;
+                for(var i = 0; i < len; i++) {
+                    if(proto.plugins[i] == plugin) {
+                        for(var x in plugins[plugin]) {
+                            plugins[plugin][x](proto); // Run the Plugin against the prototype object
+                        }
+                    }
+                }
+            }
+        }
+        
+        // run the deprecated hooks
+        for(var hook in hooks) {
+            // Check if the hook is a global hook or if the Koi definition calls for the hook
+            if(hook === 'global') {
+                for(var x in hooks[hook]) {
+                    hooks[hook][x](proto); // Run the Hook against the prototype object
+                }
+            }
+            
             // proto.hooks is DEPRECATED as of 0.13.0 -- Please use proto.plugins instead -- Will be removed by version 1.0
             if(proto.hooks) {
                 var len = proto.hooks.length;
@@ -100,17 +121,6 @@ if(typeof Koi == 'undefined') { Koi = {}; }
                     if(proto.hooks[i] == hook) {
                         for(var x in hooks[hook]) {
                             hooks[hook][x](proto); // Run the Hook against the prototype object
-                        }
-                    }
-                }
-            }
-            
-            if(proto.plugins) {
-                var len = proto.plugins.length;
-                for(var i = 0; i < len; i++) {
-                    if(proto.plugins[i] == plugin) {
-                        for(var x in plugins[plugin]) {
-                            plugins[plugin][x](proto); // Run the Plugin against the prototype object
                         }
                     }
                 }
