@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.2.1
+ * @version 0.3.0
  
  FreeBSD License
  
@@ -278,7 +278,6 @@ if(typeof Koi == 'undefined') { Koi = {}; }
         return _temp_obj;
     };
     
-    
     Koi.state = function( context, states ) {
         
         var ObjectState = {};
@@ -289,20 +288,26 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             var s = function() {};
             ObjectState = s.prototype;
             
-            ObjectState._index  = 0;
-            ObjectState._states = {};
-            ObjectState._order  = [];
+            ObjectState._index     = 0;
+            ObjectState._states    = {};
+            ObjectState._order     = [];
+            ObjectState._disabled  = {};
+            ObjectState._direction = 'forward';
             
-            ObjectState.trigger = function( name, context ) {
+            ObjectState.trigger = function( name, data, context ) {
+                if(typeof this._disabled[name] != "undefined") { return this; }
+                var _data = [];
+                if((typeof data == "object")) { _data.push(data); }
+                if((typeof data != "undefined") && (typeof data != "object") && !context) { context = data; }
                 if(this._states[name]) {
                     this._state = name;
                     this.set_index();
                     if(context) {
-                        this._states[name].apply(context);
+                        this._states[name].apply(context, data);
                     } else if( _context ) {
-                        this._states[name].apply(_context);
+                        this._states[name].apply(_context, data);
                     } else {
-                        this._states[name]();
+                        this._states[name](data);
                     }
                 }
                 return this;
@@ -327,6 +332,14 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             ObjectState.order = function( order ) {
                 if(order) { this._order = order; }
                 return this;
+            };
+            
+            ObjectState.disable = function( state ) {
+                if(state) { this._disabled[state] = 1; }
+            };
+            
+            ObjectState.enable = function( state ) {
+                if(state) { delete this._disabled[state]; }
             };
                         
             ObjectState.add = function( name, state, force ) {
@@ -354,15 +367,37 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             };
             
             ObjectState.next = function() {
-                if(this._order[(this._index + 1)]) {
-                    this.trigger(this._order[(this._index + 1)]);
+                this._direction = 'forward';
+                var count =  0;
+                var skip  = true;
+                var state = false;
+                while(skip && count < 1000) {
+                    count++;
+                    try {
+                        state = this._order[(this._index + count)];
+                        if(typeof this._disabled[state] == "undefined") {
+                            skip = false;
+                        }
+                    } catch(e) {}
                 }
+                if(state) { this.trigger(state); }
             };
             
             ObjectState.previous = function() {
-                if(this._order[(this._index - 1)]) {
-                    this.trigger(this._order[(this._index - 1)]);
+                this._direction = 'backward';
+                var count =  0;
+                var skip  = true;
+                var state = false;
+                while(skip && count < 1000) {
+                    count++;
+                    try {
+                        state = this._order[(this._index - count)];
+                        if(typeof this._disabled[state] == "undefined") {
+                            skip = false;
+                        }
+                    } catch(e) {}
                 }
+                if(state) { this.trigger(state); }
             };
             
             ObjectState.forward  = ObjectState.next;
