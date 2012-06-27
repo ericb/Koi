@@ -294,20 +294,18 @@ if(typeof Koi == 'undefined') { Koi = {}; }
             ObjectState._disabled  = {};
             ObjectState._direction = 'forward';
             
-            ObjectState.trigger = function( name, data, context ) {
+            ObjectState.trigger = function( name, context, data ) {
                 if(typeof this._disabled[name] != "undefined") { return this; }
                 var _data = [];
-                if((typeof data == "object")) { _data.push(data); }
-                if((typeof data != "undefined") && (typeof data != "object") && !context) { context = data; }
+                if((typeof data != "undefined")) { _data.push(data); }
+                if((typeof context == "undefined" || !context)) { context = _context; }
                 if(this._states[name]) {
                     this._state = name;
                     this.set_index();
                     if(context) {
-                        this._states[name].apply(context, data);
-                    } else if( _context ) {
-                        this._states[name].apply(_context, data);
+                        this._states[name].apply(context, _data);
                     } else {
-                        this._states[name](data);
+                        this._states[name](_data);
                     }
                 }
                 return this;
