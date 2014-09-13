@@ -2,7 +2,7 @@
  * Koi
  * @desc A small Javascript utility that provides organizational helpers
  * @author Eric Bobbitt (eric@hellouser.net)
- * @version 0.4.1
+ * @version 0.4.2
  
  FreeBSD License
  
