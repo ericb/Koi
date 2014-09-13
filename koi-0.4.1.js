@@ -226,7 +226,11 @@ if(typeof Koi == 'undefined') { Koi = {}; }
     Koi.extend = function(parent, def, nest) {
         var obj = new parent('koi-ignore-init');
         if(nest) {
-        	obj._parent = {};
+        	if('undefined' != typeof obj._parent) {
+        		obj._parent = { '_parent': obj._parent };
+        	} else {
+        		obj._parent = {};
+        	}
         	for(var x in obj) {
 	            if(x != '_parent' && def[x])
 	            	obj._parent[x] = obj[x];
