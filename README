@@ -7,3 +7,28 @@ Main Features:
  * Import Methods to ease the inclusion of multiple objects.
  * Supports constructor methods.
  * Supports adding global & namespaced hooks
+
+
+ # Features
+
+ ## Class Definition
+
+ Koi.define
+ 	- make classes with objects {}
+ 	- easy constructors with "init"
+ 	- 
+ Koi.extend
+ 	- extend other classes easily
+ 	- non-koi classes will run constructors *beware* 
+
+ ## Limitations
+
+Due to the special nature of 'this', _parent objects can't always be called in the way you expect.
+this._parent.init for e.g.
+
+Shared objects still exist in Koi classes
+Koi.define({ 'list': [1,2,3] });
+
+ ## Plugin Architecture
+
+ Koi.add
